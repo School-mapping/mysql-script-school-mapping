@@ -1,0 +1,11 @@
+CREATE DATABASE schoolmaping;
+
+USE schoolmaping;
+
+CREATE TABLE usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    senha CHAR(20) NOT NULL,
+    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+);
