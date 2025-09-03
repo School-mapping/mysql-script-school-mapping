@@ -1,11 +1,12 @@
-CREATE DATABASE schoolmaping;
+CREATE DATABASE SchoolMapping;
 
-USE schoolmaping;
+USE SchoolMapping;
 
-CREATE TABLE usuarios (
+CREATE TABLE TB_Usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     usuario VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
-    senha CHAR(20) NOT NULL,
+		CONSTRAINT chkArroba CHECK(email LIKE '%@%'),
+    senha VARCHAR(30) NOT NULL,
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
 );
