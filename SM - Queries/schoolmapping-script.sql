@@ -1,0 +1,112 @@
+CREATE DATABASE SchoolMapping;
+
+USE SchoolMapping;
+
+CREATE TABLE Usuario (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    senha VARCHAR(255) NOT NULL,
+    tipo VARCHAR(20) NOT NULL,
+    criado_em DATE NOT NULL
+);
+
+CREATE TABLE Importacao (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,
+    arquivo VARCHAR(255) NOT NULL,
+    data DATE NOT NULL,
+    sucesso BOOLEAN NOT NULL,
+    log VARCHAR(1000),
+    FOREIGN KEY (usuario_id) REFERENCES Usuario(id)
+);
+
+CREATE TABLE Escola (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    inep_id VARCHAR(8) NOT NULL UNIQUE,
+    cnpj VARCHAR(14),
+    eol VARCHAR(6),
+    municipio_nome VARCHAR(100) DEFAULT 'São Paulo',
+    dre VARCHAR(100),
+    distrito VARCHAR(100),
+    subprefeitura VARCHAR(100),
+    dependencia INT,
+    localizacao INT
+);
+
+CREATE TABLE Endereco (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    escola_id INT NOT NULL,
+    rua VARCHAR(255),
+    numero VARCHAR(10),
+    bairro VARCHAR(100),
+    cep VARCHAR(10),
+    zona VARCHAR(20),
+    FOREIGN KEY (escola_id) REFERENCES Escola(id)
+);
+
+CREATE TABLE Indicadores (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    escola_id INT NOT NULL,
+    ano INT NOT NULL,
+    ciclo VARCHAR(10),
+    serie INT,
+    ideb DECIMAL(4,2),
+    fluxo DECIMAL(4,2),
+    aprendizado DECIMAL(4,2),
+    nota_lp DECIMAL(6,2),
+    nota_mt DECIMAL(6,2),
+    lp_adequado DECIMAL(4,2),
+    mt_adequado DECIMAL(4,2),
+    lp_insuficiente DECIMAL(4,2),
+    mt_insuficiente DECIMAL(4,2),
+    lp_basico DECIMAL(4,2),
+    mt_basico DECIMAL(4,2),
+    lp_proficiente DECIMAL(4,2),
+    mt_proficiente DECIMAL(4,2),
+    lp_avancado DECIMAL(4,2),
+    mt_avancado DECIMAL(4,2),
+    matriculas INT,
+    aprovados DECIMAL(5,2),
+    reprovados DECIMAL(5,2),
+    abandonos DECIMAL(5,2),
+    FOREIGN KEY (escola_id) REFERENCES Escola(id)
+);
+
+CREATE TABLE DistorcaoIdadeSerie (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    escola_id INT NOT NULL,
+    ano INT NOT NULL,
+    ef_1ano DECIMAL(5,2),
+    ef_2ano DECIMAL(5,2),
+    ef_3ano DECIMAL(5,2),
+    ef_4ano DECIMAL(5,2),
+    ef_5ano DECIMAL(5,2),
+    ef_6ano DECIMAL(5,2),
+    ef_7ano DECIMAL(5,2),
+    ef_8ano DECIMAL(5,2),
+    ef_9ano DECIMAL(5,2),
+    ef_total_ai DECIMAL(5,2),
+    ef_total_af DECIMAL(5,2),
+    ef_total DECIMAL(5,2),
+    em_1ano DECIMAL(5,2),
+    em_2ano DECIMAL(5,2),
+    em_3ano DECIMAL(5,2),
+    em_4ano DECIMAL(5,2),
+    em_total DECIMAL(5,2),
+    FOREIGN KEY (escola_id) REFERENCES Escola(id)
+);
+
+CREATE TABLE Gastos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    escola_id INT NOT NULL,
+    ano INT NOT NULL,
+    repasse VARCHAR(20),
+    parcela VARCHAR(20),
+    valor_vulnerabilidade DECIMAL(12,2),
+    valor_extraordinario DECIMAL(12,2),
+    valor_gremio DECIMAL(12,2),
+    portaria_sme VARCHAR(20),
+    FOREIGN KEY (escola_id) REFERENCES Escola(id)
+);
