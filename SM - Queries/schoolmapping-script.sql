@@ -2,51 +2,45 @@ CREATE DATABASE SchoolMapping;
 
 USE SchoolMapping;
 
-CREATE TABLE Usuario (
+CREATE TABLE TB_Usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     senha VARCHAR(255) NOT NULL,
-    tipo VARCHAR(20) NOT NULL,
+    tipo VARCHAR(20) NOT NULL DEFAULT 'Padrão',
     criado_em DATE NOT NULL
 );
 
-CREATE TABLE Importacao (
+CREATE TABLE TB_Importacao (
     id INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT NOT NULL,
     arquivo VARCHAR(255) NOT NULL,
     data DATE NOT NULL,
     sucesso BOOLEAN NOT NULL,
     log VARCHAR(1000),
-    FOREIGN KEY (usuario_id) REFERENCES Usuario(id)
+    FOREIGN KEY (usuario_id) REFERENCES TB_Usuarios(id)
 );
 
-CREATE TABLE Escola (
+CREATE TABLE TB_Escolas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
-    inep_id VARCHAR(8) NOT NULL UNIQUE,
-    cnpj VARCHAR(14),
-    eol VARCHAR(6),
-    municipio_nome VARCHAR(100) DEFAULT 'São Paulo',
-    dre VARCHAR(100),
-    distrito VARCHAR(100),
-    subprefeitura VARCHAR(100),
-    dependencia INT,
-    localizacao INT
+    codigo_inep VARCHAR(8) NOT NULL UNIQUE,
+    ideb DECIMAL(3,2),
+    municipio_nome VARCHAR(100) DEFAULT 'São Paulo'
 );
 
-CREATE TABLE Endereco (
+CREATE TABLE TB_Enderecos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     escola_id INT NOT NULL,
-    rua VARCHAR(255),
+    logradouro VARCHAR(255),
     numero VARCHAR(10),
     bairro VARCHAR(100),
-    cep VARCHAR(10),
-    zona VARCHAR(20),
-    FOREIGN KEY (escola_id) REFERENCES Escola(id)
+    cep CHAR(9),
+    zona VARCHAR(10),
+    FOREIGN KEY (escola_id) REFERENCES TB_Escolas(id)
 );
 
-CREATE TABLE Indicadores (
+CREATE TABLE TB_Indicadores (
     id INT AUTO_INCREMENT PRIMARY KEY,
     escola_id INT NOT NULL,
     ano INT NOT NULL,
@@ -71,10 +65,10 @@ CREATE TABLE Indicadores (
     aprovados DECIMAL(5,2),
     reprovados DECIMAL(5,2),
     abandonos DECIMAL(5,2),
-    FOREIGN KEY (escola_id) REFERENCES Escola(id)
+    FOREIGN KEY (escola_id) REFERENCES TB_Escolas(id)
 );
 
-CREATE TABLE DistorcaoIdadeSerie (
+CREATE TABLE TB_DistorcaoIdadeSerie (
     id INT AUTO_INCREMENT PRIMARY KEY,
     escola_id INT NOT NULL,
     ano INT NOT NULL,
@@ -95,10 +89,10 @@ CREATE TABLE DistorcaoIdadeSerie (
     em_3ano DECIMAL(5,2),
     em_4ano DECIMAL(5,2),
     em_total DECIMAL(5,2),
-    FOREIGN KEY (escola_id) REFERENCES Escola(id)
+    FOREIGN KEY (escola_id) REFERENCES TB_Escolas(id)
 );
 
-CREATE TABLE Gastos (
+CREATE TABLE TB_Gastos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     escola_id INT NOT NULL,
     ano INT NOT NULL,
@@ -108,5 +102,5 @@ CREATE TABLE Gastos (
     valor_extraordinario DECIMAL(12,2),
     valor_gremio DECIMAL(12,2),
     portaria_sme VARCHAR(20),
-    FOREIGN KEY (escola_id) REFERENCES Escola(id)
+    FOREIGN KEY (escola_id) REFERENCES TB_Escolas(id)
 );
