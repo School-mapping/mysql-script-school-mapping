@@ -104,3 +104,12 @@ CREATE TABLE TB_Gastos (
     portaria_sme VARCHAR(20),
     FOREIGN KEY (escola_id) REFERENCES TB_Escolas(id)
 );
+
+CREATE TABLE TB_Logs (
+id INT AUTO_INCREMENT PRIMARY KEY,
+dataLog DATETIME,
+nivel VARCHAR (10),
+descricao VARCHAR(250),
+origem VARCHAR(100)
+);
+
