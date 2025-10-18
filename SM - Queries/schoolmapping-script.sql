@@ -11,21 +11,12 @@ CREATE TABLE TB_Usuarios (
     criado_em DATE NOT NULL
 );
 
-CREATE TABLE TB_Importacao (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    usuario_id INT NOT NULL,
-    arquivo VARCHAR(255) NOT NULL,
-    data DATE NOT NULL,
-    sucesso BOOLEAN NOT NULL,
-    log VARCHAR(1000),
-    FOREIGN KEY (usuario_id) REFERENCES TB_Usuarios(id)
-);
-
 CREATE TABLE TB_Escolas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
     codigo_inep VARCHAR(8) NOT NULL UNIQUE,
     ideb DECIMAL(3,2),
+    cep CHAR(9) UNIQUE,
     municipio_nome VARCHAR(100) DEFAULT 'São Paulo'
 );
 
@@ -35,7 +26,6 @@ CREATE TABLE TB_Enderecos (
     logradouro VARCHAR(255),
     numero VARCHAR(10),
     bairro VARCHAR(100),
-    cep CHAR(9),
     zona VARCHAR(10),
     FOREIGN KEY (escola_id) REFERENCES TB_Escolas(id)
 );
@@ -107,7 +97,7 @@ CREATE TABLE TB_Gastos (
 
 CREATE TABLE TB_Logs (
 id INT AUTO_INCREMENT PRIMARY KEY,
-dataLog DATETIME,
+data DATETIME,
 nivel VARCHAR (10),
 descricao VARCHAR(250),
 origem VARCHAR(100)
