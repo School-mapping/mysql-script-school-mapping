@@ -8,7 +8,7 @@ CREATE TABLE TB_Usuarios (
     email VARCHAR(100) NOT NULL UNIQUE,
     senha VARCHAR(255) NOT NULL,
     tipo VARCHAR(20) NOT NULL DEFAULT 'Padrão',
-    criado_em DATE NOT NULL
+    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE TB_Escolas (
