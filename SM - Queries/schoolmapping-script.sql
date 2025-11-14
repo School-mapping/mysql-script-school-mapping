@@ -1,105 +1,118 @@
 CREATE DATABASE SchoolMapping;
-
 USE SchoolMapping;
 
+/* INFOS_CREDENCIAIS */
+
+CREATE TABLE TB_Empresas (
+id INT PRIMARY KEY AUTO_INCREMENT,
+razao_social VARCHAR(45) NOT NULL,
+cnpj CHAR(14) NOT NULL,
+email VARCHAR(45) NOT NULL,
+telefone CHAR(11) NOT NULL
+);
+
+CREATE TABLE TB_Perfis (
+id INT PRIMARY KEY AUTO_INCREMENT,
+cargo VARCHAR(20)
+);
+
 CREATE TABLE TB_Usuarios (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    senha VARCHAR(255) NOT NULL,
-    tipo VARCHAR(20) NOT NULL DEFAULT 'Padrão',
-    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+id INT PRIMARY KEY AUTO_INCREMENT,
+id_perfil INT NOT NULL,
+id_empresa INT,
+nome VARCHAR(60) NOT NULL,
+email VARCHAR(45) NOT NULL,
+senha VARCHAR(45) NOT NULL,
+tipo VARCHAR(15) NOT NULL DEFAULT "Padrão",
+data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP,
+	CONSTRAINT fk_perfil_tb_usuarios
+		FOREIGN KEY (id_perfil) REFERENCES TB_Perfis(id)
 );
 
-CREATE TABLE TB_Escolas (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(255) NOT NULL,
-    codigo_inep VARCHAR(8) NOT NULL UNIQUE,
-    ideb DECIMAL(3,2),
-    cep CHAR(9) UNIQUE,
-    municipio_nome VARCHAR(100) DEFAULT 'São Paulo'
-);
-
-CREATE TABLE TB_Enderecos (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    escola_id INT NOT NULL,
-    logradouro VARCHAR(255),
-    numero VARCHAR(10),
-    bairro VARCHAR(100),
-    zona VARCHAR(10),
-    FOREIGN KEY (escola_id) REFERENCES TB_Escolas(id)
-);
-
-CREATE TABLE TB_Indicadores (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    escola_id INT NOT NULL,
-    ano INT NOT NULL,
-    ciclo VARCHAR(10),
-    serie INT,
-    ideb DECIMAL(4,2),
-    fluxo DECIMAL(4,2),
-    aprendizado DECIMAL(4,2),
-    nota_lp DECIMAL(6,2),
-    nota_mt DECIMAL(6,2),
-    lp_adequado DECIMAL(4,2),
-    mt_adequado DECIMAL(4,2),
-    lp_insuficiente DECIMAL(4,2),
-    mt_insuficiente DECIMAL(4,2),
-    lp_basico DECIMAL(4,2),
-    mt_basico DECIMAL(4,2),
-    lp_proficiente DECIMAL(4,2),
-    mt_proficiente DECIMAL(4,2),
-    lp_avancado DECIMAL(4,2),
-    mt_avancado DECIMAL(4,2),
-    matriculas INT,
-    aprovados DECIMAL(5,2),
-    reprovados DECIMAL(5,2),
-    abandonos DECIMAL(5,2),
-    FOREIGN KEY (escola_id) REFERENCES TB_Escolas(id)
-);
-
-CREATE TABLE TB_DistorcaoIdadeSerie (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    escola_id INT NOT NULL,
-    ano INT NOT NULL,
-    ef_1ano DECIMAL(5,2),
-    ef_2ano DECIMAL(5,2),
-    ef_3ano DECIMAL(5,2),
-    ef_4ano DECIMAL(5,2),
-    ef_5ano DECIMAL(5,2),
-    ef_6ano DECIMAL(5,2),
-    ef_7ano DECIMAL(5,2),
-    ef_8ano DECIMAL(5,2),
-    ef_9ano DECIMAL(5,2),
-    ef_total_ai DECIMAL(5,2),
-    ef_total_af DECIMAL(5,2),
-    ef_total DECIMAL(5,2),
-    em_1ano DECIMAL(5,2),
-    em_2ano DECIMAL(5,2),
-    em_3ano DECIMAL(5,2),
-    em_4ano DECIMAL(5,2),
-    em_total DECIMAL(5,2),
-    FOREIGN KEY (escola_id) REFERENCES TB_Escolas(id)
-);
-
-CREATE TABLE TB_Gastos (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    escola_id INT NOT NULL,
-    ano INT NOT NULL,
-    repasse VARCHAR(20),
-    parcela VARCHAR(20),
-    valor_vulnerabilidade DECIMAL(12,2),
-    valor_extraordinario DECIMAL(12,2),
-    valor_gremio DECIMAL(12,2),
-    portaria_sme VARCHAR(20),
-    FOREIGN KEY (escola_id) REFERENCES TB_Escolas(id)
+CREATE TABLE TB_Tokens (
+id INT PRIMARY KEY AUTO_INCREMENT,
+id_empresa INT,
+id_usuario INT,
+token VARCHAR(45) NOT NULL,
+ativo BOOLEAN NOT NULL,
+	CONSTRAINT fk_token_tb_usuarios
+		FOREIGN KEY (id_usuario) REFERENCES TB_Usuarios(id),
+	CONSTRAINT fk_token_tb_empresas
+		FOREIGN KEY (id_empresa) REFERENCES TB_Empresas(id),
+	CONSTRAINT chk_empresa_ou_usuario
+		CHECK (
+			(id_usuario IS NOT NULL AND id_empresa IS NULL) OR
+            (id_usuario IS NULL AND id_empresa IS NOT NULL)
+		)
 );
 
 CREATE TABLE TB_Logs (
-id INT AUTO_INCREMENT PRIMARY KEY,
-data DATETIME,
-nivel VARCHAR (10),
-descricao VARCHAR(250),
-origem VARCHAR(100)
+id INT PRIMARY KEY AUTO_INCREMENT,
+data_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
+nivel VARCHAR(10) NOT NULL,
+descricao VARCHAR(255) NOT NULL,
+origem VARCHAR(40) NOT NULL
 );
 
+CREATE TABLE TB_Config_Slack (
+id INT PRIMARY KEY AUTO_INCREMENT,
+canal_slack VARCHAR(45) NOT NULL,
+intervalo_envio TIME NOT NULL,
+parametro_notificacao VARCHAR(45) NOT NULL,
+ativo BOOLEAN NOT NULL,
+data_ultima_atualizacao DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+/* INFO_ESCOLARES*/
+
+CREATE TABLE TB_Regioes (
+id INT PRIMARY KEY AUTO_INCREMENT,
+nome VARCHAR(10) NOT NULL
+);
+
+CREATE TABLE TB_Enderecos (
+id INT,
+id_regiao INT,
+cep CHAR(9) NOT NULL, # Inserir com " - "
+bairro VARCHAR(45) NOT NULL,
+logradouro VARCHAR(45) NOT NULL,
+numero VARCHAR(10) NOT NULL,
+	CONSTRAINT fk_regiao_tb_enderecos
+		FOREIGN KEY (id_regiao) REFERENCES TB_Regioes(id),
+	CONSTRAINT pk_composta_tb_enderecos 
+		PRIMARY KEY (id, id_regiao)
+);
+
+CREATE TABLE TB_Escolas (
+id INT PRIMARY KEY AUTO_INCREMENT,
+id_endereco INT NOT NULL,
+nome VARCHAR(60) NOT NULL,
+codigo_inep CHAR(8) NOT NULL,
+subprefeitura VARCHAR(60) NOT NULL,
+	CONSTRAINT fk_endereco_tb_escolas
+		FOREIGN KEY (id_endereco) REFERENCES TB_Enderecos(id)
+);
+
+CREATE TABLE TB_Ideb (
+id INT PRIMARY KEY AUTO_INCREMENT,
+id_escola INT NOT NULL,
+nota DECIMAL (3,1) NOT NULL,
+ano_emissao YEAR NOT NULL,
+	CONSTRAINT fk_escola_tb_ideb
+		FOREIGN KEY (id_escola) REFERENCES TB_Escolas(id)
+);
+
+CREATE TABLE TB_Verbas (
+id INT PRIMARY KEY AUTO_INCREMENT,
+id_escola INT NOT NULL,
+ano YEAR NOT NULL,
+portaria_sme VARCHAR(60),
+valor_primeira_parcela DECIMAL(12,2) NOT NULL,
+valor_segunda_parcela DECIMAL(12,2),
+valor_terceira_parcela DECIMAL(12,2),
+valor_vulnerabilidade DECIMAL(12,2),
+valor_extraordinario DECIMAL(12,2),
+valor_gremio DECIMAL(12,2),
+	CONSTRAINT fk_escola_tb_verbas
+		FOREIGN KEY (id_escola) REFERENCES TB_Escolas(id)
+);
