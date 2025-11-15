@@ -116,3 +116,13 @@ valor_gremio DECIMAL(12,2),
 	CONSTRAINT fk_escola_tb_verbas
 		FOREIGN KEY (id_escola) REFERENCES TB_Escolas(id)
 );
+
+INSERT INTO TB_Perfis (cargo) VALUES
+('Comum'),
+('Administrador');
+
+INSERT INTO TB_Regioes (nome) VALUES
+('Norte'),
+('Leste'),
+('Sul'),
+('Oeste');
