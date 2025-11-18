@@ -13,7 +13,7 @@ telefone CHAR(11) NOT NULL
 
 CREATE TABLE TB_Perfis (
 id INT PRIMARY KEY AUTO_INCREMENT,
-cargo VARCHAR(20)
+cargo VARCHAR(20) NOT NULL
 );
 
 CREATE TABLE TB_Usuarios (
@@ -23,10 +23,12 @@ id_empresa INT,
 nome VARCHAR(60) NOT NULL,
 email VARCHAR(45) NOT NULL,
 senha VARCHAR(45) NOT NULL,
-tipo VARCHAR(15) NOT NULL DEFAULT "Padrão",
+tipo VARCHAR(15) NOT NULL DEFAULT "Padrão", /*Da para colocar um ENUM*/ 
 data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP,
 	CONSTRAINT fk_perfil_tb_usuarios
-		FOREIGN KEY (id_perfil) REFERENCES TB_Perfis(id)
+		FOREIGN KEY (id_perfil) REFERENCES TB_Perfis(id),
+	CONSTRAINT fk_empresa_tb_usuarios
+		FOREIGN KEY (id_empresa) REFERENCES TB_Empresas(id)
 );
 
 CREATE TABLE TB_Tokens (
@@ -67,7 +69,7 @@ data_ultima_atualizacao DATETIME DEFAULT CURRENT_TIMESTAMP
 
 CREATE TABLE TB_Regioes (
 id INT PRIMARY KEY AUTO_INCREMENT,
-nome VARCHAR(10) NOT NULL
+nome VARCHAR(10) NOT NULL /*da para ser ENUM*/
 );
 
 CREATE TABLE TB_Enderecos (
@@ -106,7 +108,7 @@ CREATE TABLE TB_Verbas (
 id INT PRIMARY KEY AUTO_INCREMENT,
 id_escola INT NOT NULL,
 ano YEAR NOT NULL,
-portaria_sme VARCHAR(60),
+portaria_sme VARCHAR(60) NOT NULL,
 valor_primeira_parcela DECIMAL(12,2) NOT NULL,
 valor_segunda_parcela DECIMAL(12,2),
 valor_terceira_parcela DECIMAL(12,2),
@@ -125,4 +127,5 @@ INSERT INTO TB_Regioes (nome) VALUES
 ('Norte'),
 ('Leste'),
 ('Sul'),
+('Centro'),
 ('Oeste');
