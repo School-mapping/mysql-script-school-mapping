@@ -73,7 +73,7 @@ nome VARCHAR(10) NOT NULL /*da para ser ENUM*/
 );
 
 CREATE TABLE TB_Enderecos (
-id INT,
+id INT AUTO_INCREMENT,
 id_regiao INT,
 cep CHAR(9) NOT NULL, # Inserir com " - "
 bairro VARCHAR(45) NOT NULL,
@@ -87,10 +87,10 @@ numero VARCHAR(10) NOT NULL,
 
 CREATE TABLE TB_Escolas (
 id INT PRIMARY KEY AUTO_INCREMENT,
-id_endereco INT NOT NULL,
-nome VARCHAR(60) NOT NULL,
+id_endereco INT,
+nome VARCHAR(100) NOT NULL,
 codigo_inep CHAR(8) NOT NULL,
-subprefeitura VARCHAR(60) NOT NULL,
+subprefeitura VARCHAR(60),
 	CONSTRAINT fk_endereco_tb_escolas
 		FOREIGN KEY (id_endereco) REFERENCES TB_Enderecos(id)
 );
@@ -129,3 +129,9 @@ INSERT INTO TB_Regioes (nome) VALUES
 ('Sul'),
 ('Centro'),
 ('Oeste');
+
+
+SELECT * FROM TB_Escolas;
+SELECT * FROM TB_Ideb;
+SELECT * FROM TB_Regioes;
+SELECT * FROM TB_Logs;
