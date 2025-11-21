@@ -129,4 +129,291 @@ INSERT INTO TB_Regioes (nome) VALUES
 ('Centro'),
 ('Oeste');
 
+SELECT COUNT(*) AS total_escolas
+FROM TB_Escolas;
 SELECT * FROM TB_Escolas;
+
+SELECT COUNT(*) AS TB_Verbas
+FROM TB_Verbas;
+SELECT * FROM TB_Verbas;
+
+SELECT COUNT(*) AS TB_Ideb
+FROM TB_Ideb;
+SELECT * FROM TB_Ideb;
+
+SELECT COUNT(*) AS TB_Enderecos
+FROM TB_Enderecos;
+SELECT * FROM TB_Enderecos;
+
+
+
+
+/*Gráfico de colunas ------------------------------------------------------------------------------------------------------------------------------------------------------------------ */
+	SELECT 
+		AVG(ideb.nota) AS media_nota,
+		ideb.ano_emissao AS ano_nota,
+		endereco.id_regiao AS regiao
+	FROM TB_Ideb AS ideb
+	JOIN TB_Escolas AS escola 
+		ON ideb.id_escola = escola.id
+	JOIN TB_Enderecos AS endereco 
+		ON escola.id_endereco = endereco.id
+	GROUP BY ideb.ano_emissao, endereco.id_regiao;
+
+
+
+
+/*Gráfico bidirecional ---------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+	SELECT
+		r.nome AS regiao,
+		ideb.ano_emissao AS ano,
+		AVG(ideb.nota) AS media_ideb,
+		AVG(
+			verba.valor_primeira_parcela +
+			IFNULL(verba.valor_segunda_parcela, 0) +
+			IFNULL(verba.valor_terceira_parcela, 0) +
+			IFNULL(verba.valor_vulnerabilidade, 0) +
+			IFNULL(verba.valor_extraordinario, 0) +
+			IFNULL(verba.valor_gremio, 0)
+		) AS media_ptrf
+	FROM TB_Ideb AS ideb
+	JOIN TB_Escolas AS e 
+		ON ideb.id_escola = e.id
+	JOIN TB_Enderecos AS ender 
+		ON e.id_endereco = ender.id
+	JOIN TB_Regioes AS r 
+		ON ender.id_regiao = r.id
+	JOIN TB_Verbas AS verba 
+		ON verba.id_escola = e.id
+	   AND verba.ano = ideb.ano_emissao        
+	WHERE ideb.ano_emissao = (
+		SELECT MAX(ano_emissao) FROM TB_Ideb
+	)
+	GROUP BY r.nome, ideb.ano_emissao;
+
+
+
+/*KPIs -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------S*/
+	
+    /*Media geral ideb ultimo ano %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+	SELECT 
+		AVG(ideb.nota) AS media_nota,
+		ideb.ano_emissao AS ano_nota
+	FROM TB_Ideb AS ideb
+	JOIN TB_Escolas AS escola 
+		ON ideb.id_escola = escola.id
+	WHERE ideb.ano_emissao = (
+		SELECT MAX(ano_emissao) FROM TB_Ideb
+	)
+	GROUP BY ideb.ano_emissao;
+
+
+	/*Media geral ideb ultimo ano - feito com IA %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+	SELECT 
+		AVG(ideb.nota) AS media_nota,
+		ideb.ano_emissao AS ano_nota
+	FROM TB_Ideb AS ideb
+	WHERE ideb.ano_emissao = (
+		SELECT ano_emissao
+		FROM TB_Ideb
+		GROUP BY ano_emissao
+		ORDER BY ano_emissao DESC
+		LIMIT 1 OFFSET 1  -- pega o 2º maior (penúltimo)
+	)
+	GROUP BY ideb.ano_emissao;
+
+	/*Soma geral ptrf ultimo ano $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*/
+	SELECT SUM(
+			valor.valor_primeira_parcela +
+			IFNULL(valor.valor_segunda_parcela, 0) +
+			IFNULL(valor.valor_terceira_parcela, 0) +
+			IFNULL(valor.valor_vulnerabilidade, 0) +
+			IFNULL(valor.valor_extraordinario, 0) +
+			IFNULL(valor.valor_gremio, 0)
+		) as soma_total
+		FROM TB_Verbas AS valor
+		WHERE valor.ano = (SELECT MAX(ano) FROM TB_Verbas);
+
+
+/*Diferença de ptrf ultimo ano x penultimo ano $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*/
+SELECT
+(
+  SELECT SUM(
+        valor.valor_primeira_parcela +
+        IFNULL(valor.valor_segunda_parcela, 0) +
+        IFNULL(valor.valor_terceira_parcela, 0) +
+        IFNULL(valor.valor_vulnerabilidade, 0) +
+        IFNULL(valor.valor_extraordinario, 0) +
+        IFNULL(valor.valor_gremio, 0)
+    ) as soma_total
+    FROM TB_Verbas AS valor
+    WHERE valor.ano = (SELECT MAX(ano) FROM TB_Verbas)
+)
+-
+(
+    SELECT SUM(
+        v.valor_primeira_parcela +
+        IFNULL(v.valor_segunda_parcela, 0) +
+        IFNULL(v.valor_terceira_parcela, 0) +
+        IFNULL(v.valor_vulnerabilidade, 0) +
+        IFNULL(v.valor_extraordinario, 0) +
+        IFNULL(v.valor_gremio, 0)
+    )
+    FROM TB_Verbas v
+    WHERE v.ano = (
+        SELECT ano
+        FROM TB_Verbas
+        GROUP BY ano
+        ORDER BY ano DESC
+        LIMIT 1 OFFSET 1
+    )
+) AS diferenca_ptrf;
+/*KPIs -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------S*/
+
+/*Lista de escolas ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+SELECT 
+	escola.nome as nome_escola,  
+    escola.codigo_inep as codigo_inep,
+    ideb.nota as nota_ideb,
+    concat(
+		endereco.logradouro, ", ",
+        endereco.numero, " - ",
+        endereco.bairro
+    ) as endereco,
+    endereco.cep as cep
+    FROM TB_Escolas as escola
+	JOIN TB_Ideb as ideb
+        ON escola.id = ideb.id_escola
+	JOIN TB_Enderecos as endereco
+		ON endereco.id = escola.id_endereco;
+/*Lista de escolas ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+/*dashporescolas ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+	
+    /*Gráfico de coluna e linha */
+	SELECT 
+		v.ano AS ano,
+		SUM(
+			v.valor_primeira_parcela +
+			IFNULL(v.valor_segunda_parcela, 0) +
+			IFNULL(v.valor_terceira_parcela, 0) +
+			IFNULL(v.valor_vulnerabilidade, 0) +
+			IFNULL(v.valor_extraordinario, 0) +
+			IFNULL(v.valor_gremio, 0)
+		) AS soma_total_repasse,
+		i.nota AS nota_ideb
+	FROM TB_Verbas AS v
+	LEFT JOIN TB_Ideb AS i 
+		ON i.id_escola = v.id_escola
+		AND i.ano_emissao = v.ano 
+	WHERE v.id_escola = 1
+	GROUP BY v.ano, i.nota
+	ORDER BY v.ano DESC;
+
+
+	/*KPIS ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+		
+        /* KPIS Ptrf */
+		SELECT
+		/* 1. Total do último ano */
+		(
+			SELECT SUM(
+				v.valor_primeira_parcela +
+				IFNULL(v.valor_segunda_parcela, 0) +
+				IFNULL(v.valor_terceira_parcela, 0) +
+				IFNULL(v.valor_vulnerabilidade, 0) +
+				IFNULL(v.valor_extraordinario, 0) +
+				IFNULL(v.valor_gremio, 0)
+			)
+			FROM TB_Verbas v
+			WHERE v.id_escola = 1
+			  AND v.ano = (SELECT MAX(ano) FROM TB_Verbas WHERE id_escola = 1)
+		) AS total_ultimo_ano,
+		(
+			(
+				SELECT SUM(
+					v.valor_primeira_parcela +
+					IFNULL(v.valor_segunda_parcela, 0) +
+					IFNULL(v.valor_terceira_parcela, 0) +
+					IFNULL(v.valor_vulnerabilidade, 0) +
+					IFNULL(v.valor_extraordinario, 0) +
+					IFNULL(v.valor_gremio, 0)
+				)
+				FROM TB_Verbas v
+				WHERE v.id_escola = 1
+				  AND v.ano = (SELECT MAX(ano) FROM TB_Verbas WHERE id_escola = 1)
+			)
+			-
+			(
+				SELECT SUM(
+					v.valor_primeira_parcela +
+					IFNULL(v.valor_segunda_parcela, 0) +
+					IFNULL(v.valor_terceira_parcela, 0) +
+					IFNULL(v.valor_vulnerabilidade, 0) +
+					IFNULL(v.valor_extraordinario, 0) +
+					IFNULL(v.valor_gremio, 0)
+				)
+				FROM TB_Verbas v
+				WHERE v.id_escola = 1
+				  AND v.ano = (
+						SELECT ano
+						FROM TB_Verbas
+						WHERE id_escola = 1
+						GROUP BY ano
+						ORDER BY ano DESC
+						LIMIT 1 OFFSET 1
+				  )
+			)
+		) AS diferenca;
+        
+        
+        /* KPIS ideb */
+        SELECT
+    /* 1. Nota do último ano */
+    (
+        SELECT i.nota
+        FROM TB_Ideb i
+        WHERE i.id_escola = 1
+        ORDER BY i.ano_emissao DESC
+        LIMIT 1
+    ) AS ideb_ultimo_ano,
+
+    /* 2. Diferença: (último - penúltimo) */
+    (
+        (
+            SELECT i.nota
+            FROM TB_Ideb i
+            WHERE i.id_escola = 1
+            ORDER BY i.ano_emissao DESC
+            LIMIT 1
+        )
+        -
+        (
+            SELECT i.nota
+            FROM TB_Ideb i
+            WHERE i.id_escola = 1
+            ORDER BY i.ano_emissao DESC
+            LIMIT 1 OFFSET 1
+        )
+    ) AS diferenca_ideb;
+
+
+	/* Rank de escola - especifica*/
+        SELECT *
+			FROM (
+				SELECT 
+					e.id AS id_escola,
+					e.nome AS nome_escola,
+					i.nota AS ideb,
+					i.ano_emissao AS ano,
+					RANK() OVER (ORDER BY i.nota DESC) AS posicao
+				FROM TB_Escolas e
+				JOIN TB_Ideb i 
+					ON i.id_escola = e.id
+				WHERE i.ano_emissao = (
+					SELECT MAX(ano_emissao)
+					FROM TB_Ideb
+				)
+			) AS ranking
+			WHERE ranking.id_escola = 1;
+
