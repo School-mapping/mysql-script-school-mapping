@@ -5,7 +5,7 @@ USE SchoolMapping;
 
 CREATE TABLE TB_Empresas (
 id INT PRIMARY KEY AUTO_INCREMENT,
-razao_social VARCHAR(45) NOT NULL,
+razao_social VARCHAR(60) NOT NULL,
 cnpj CHAR(14) NOT NULL,
 email VARCHAR(45) NOT NULL,
 telefone CHAR(11) NOT NULL
@@ -118,6 +118,17 @@ valor_gremio DECIMAL(12,2),
 		FOREIGN KEY (id_escola) REFERENCES TB_Escolas(id)
 );
 
+CREATE TABLE TB_Chamados (
+id INT PRIMARY KEY AUTO_INCREMENT,
+id_usuario INT NOT NULL,
+assunto VARCHAR(30),
+descricao VARCHAR(255),
+status VARCHAR(15) DEFAULT "Aberto",
+data_chamado DATE DEFAULT (CURDATE()),
+	CONSTRAINT fk_chamado_tb_usuarios
+		FOREIGN KEY (id_usuario) REFERENCES TB_Usuarios(id)
+);
+
 INSERT INTO TB_Perfis (cargo) VALUES
 ('Comum'),
 ('Administrador');
@@ -128,5 +139,3 @@ INSERT INTO TB_Regioes (nome) VALUES
 ('Sul'),
 ('Centro'),
 ('Oeste');
-
-SELECT * FROM TB_Escolas;
