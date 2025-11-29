@@ -5,7 +5,7 @@ USE SchoolMapping;
 
 CREATE TABLE TB_Empresas (
 id INT PRIMARY KEY AUTO_INCREMENT,
-razao_social VARCHAR(60) NOT NULL,
+razao_social VARCHAR(45) NOT NULL,
 cnpj CHAR(14) NOT NULL,
 email VARCHAR(45) NOT NULL,
 telefone CHAR(11) NOT NULL
@@ -55,15 +55,6 @@ descricao VARCHAR(255) NOT NULL,
 origem VARCHAR(40) NOT NULL
 );
 
-CREATE TABLE TB_Config_Slack (
-id INT PRIMARY KEY AUTO_INCREMENT,
-canal_slack VARCHAR(45) NOT NULL,
-intervalo_envio TIME NOT NULL,
-parametro_notificacao VARCHAR(45) NOT NULL,
-ativo BOOLEAN NOT NULL,
-data_ultima_atualizacao DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
 /* INFO_ESCOLARES*/
 
 CREATE TABLE TB_Regioes (
@@ -78,6 +69,7 @@ cep CHAR(9) NOT NULL, # Inserir com " - "
 bairro VARCHAR(45) NOT NULL,
 logradouro VARCHAR(45) NOT NULL,
 numero VARCHAR(10) NOT NULL,
+data_processamento DATE,
 	CONSTRAINT fk_regiao_tb_enderecos
 		FOREIGN KEY (id_regiao) REFERENCES TB_Regioes(id),
 	CONSTRAINT pk_composta_tb_enderecos 
@@ -90,6 +82,7 @@ id_endereco INT,
 nome VARCHAR(100) NOT NULL,
 codigo_inep CHAR(8) NOT NULL,
 subprefeitura VARCHAR(60),
+data_processamento DATE,
 	CONSTRAINT fk_endereco_tb_escolas
 		FOREIGN KEY (id_endereco) REFERENCES TB_Enderecos(id)
 );
@@ -99,6 +92,7 @@ id INT PRIMARY KEY AUTO_INCREMENT,
 id_escola INT NOT NULL,
 nota DECIMAL (3,1) NOT NULL,
 ano_emissao YEAR NOT NULL,
+data_processamento DATE,
 	CONSTRAINT fk_escola_tb_ideb
 		FOREIGN KEY (id_escola) REFERENCES TB_Escolas(id)
 );
@@ -114,20 +108,36 @@ valor_terceira_parcela DECIMAL(12,2),
 valor_vulnerabilidade DECIMAL(12,2),
 valor_extraordinario DECIMAL(12,2),
 valor_gremio DECIMAL(12,2),
+data_processamento DATE,
 	CONSTRAINT fk_escola_tb_verbas
 		FOREIGN KEY (id_escola) REFERENCES TB_Escolas(id)
 );
 
-CREATE TABLE TB_Chamados (
-id INT PRIMARY KEY AUTO_INCREMENT,
-id_usuario INT NOT NULL,
-assunto VARCHAR(30),
-descricao VARCHAR(255),
-status VARCHAR(15) DEFAULT "Aberto",
-data_chamado DATE DEFAULT (CURDATE()),
-	CONSTRAINT fk_chamado_tb_usuarios
-		FOREIGN KEY (id_usuario) REFERENCES TB_Usuarios(id)
+CREATE TABLE TB_Notificacao_Config (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  id_usuario INT,
+  id_bot int default 1,
+  id_canal int,
+  tipo_alerta VARCHAR(50),
+  ativo BOOLEAN DEFAULT true,
+  ultimo_disparo DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE TB_Canal_Slack (
+  id int PRIMARY KEY AUTO_INCREMENT,
+  nome VARCHAR(40)
+);
+
+CREATE TABLE TB_Bot_Slack (
+  id int PRIMARY KEY AUTO_INCREMENT,
+  nome VARCHAR(40),
+  token TEXT
+);
+
+ALTER TABLE TB_Notificacao_Config ADD FOREIGN KEY (id_canal) REFERENCES TB_Canal_Slack (id);
+
+ALTER TABLE TB_Notificacao_Config ADD FOREIGN KEY (id_bot) REFERENCES TB_Bot_Slack (id);
+
 
 INSERT INTO TB_Perfis (cargo) VALUES
 ('Comum'),
@@ -139,3 +149,31 @@ INSERT INTO TB_Regioes (nome) VALUES
 ('Sul'),
 ('Centro'),
 ('Oeste');
+
+SELECT * FROM TB_Escolas;
+
+SELECT * FROM TB_Notificacao_config;
+
+SELECT * FROM TB_Perfis;
+
+INSERT INTO TB_Empresas (razao_social, cnpj, email, telefone) VALUES
+('Tech School Solutions', '12345678000199', 'contato@techschool.com', '11987654321');
+
+INSERT INTO TB_Usuarios (id_perfil, id_empresa, nome, email, senha) VALUES
+(1, 1, 'Admin Sistema', 'admin@schoolmapping.com', 'senhaSegura123');
+
+INSERT INTO TB_Canal_Slack (nome) VALUES
+('#school_mapping_hub');
+
+-- Inserindo o Bot do Slack
+INSERT INTO TB_Bot_Slack (nome, token) VALUES
+('SchoolMappingBot', 'xoxb');
+
+
+INSERT INTO TB_Notificacao_Config 
+(id_usuario, id_bot, id_canal, tipo_alerta, ativo, ultimo_disparo) 
+values (1, 1, 1, 'NOVAS_ESCOLAS', true, '2023-11-28 10:00:00'), (1, 1, 1, 'NOVAS_VERBAS', true, '2023-11-28 10:00:00'), (1, 1, 1, 'NOVAS_NOTAS', false, '2023-11-28 10:00:00');
+
+SELECT * FROM TB_Notificacao_Config;
+
+UPDATE TB_Escolas set data_processamento = '2024-11-28'; 
