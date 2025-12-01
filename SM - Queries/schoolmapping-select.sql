@@ -68,57 +68,75 @@ LIMIT
 OFFSET
     1;
 
-/*Soma geral ptrf ultimo ano $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*/
-SELECT
-    sum(soma_ptrf) as soma_total
-FROM
-    vw_verbas
-WHERE
-    ano_verba = (
-        SELECT
-            MAX(ano_verba)
-        FROM
-            vw_verbas
-    );
 
-/*Diferença de ptrf ultimo ano x penultimo ano $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*/
+/*total yltimo ano e penultimo ano e Diferença de ptrf $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*/
 SELECT
+    -- 1. Soma Total do Último Ano
+    SUM(CASE
+        WHEN vw.ano_verba = (SELECT MAX(ano_verba) FROM vw_verbas)
+        THEN vw.soma_ptrf
+        ELSE 0
+    END) AS soma_ultimo_ano,
+
+    -- 2. Soma Total do Penúltimo Ano
+    SUM(CASE
+        WHEN vw.ano_verba = (
+            SELECT
+                ano_verba
+            FROM
+                vw_verbas
+            GROUP BY
+                ano_verba
+            ORDER BY
+                ano_verba DESC
+            LIMIT 1 OFFSET 1
+        )
+        THEN vw.soma_ptrf
+        ELSE 0
+    END) AS soma_penultimo_ano,
+
+    -- 3. Diferença (Calculada após as somas)
     (
-        SELECT
-            sum(soma_ptrf) as soma_total
-        FROM
-            vw_verbas
-        WHERE
-            ano_verba = (
-                SELECT
-                    MAX(ano_verba)
-                FROM
-                    vw_verbas
-            )
-    ) - (
-        SELECT
-            SUM(soma_ptrf) AS soma_total
-        FROM
-            vw_verbas
-        WHERE
-            ano_verba = (
+        SUM(CASE
+            WHEN vw.ano_verba = (SELECT MAX(ano_verba) FROM vw_verbas)
+            THEN vw.soma_ptrf
+            ELSE 0
+        END)
+        -
+        SUM(CASE
+            WHEN vw.ano_verba = (
                 SELECT
                     ano_verba
                 FROM
-                    (
-                        SELECT DISTINCT
-                            ano_verba
-                        FROM
-                            vw_verbas
-                        ORDER BY
-                            ano_verba DESC
-                        LIMIT
-                            1
-                        OFFSET
-                            1
-                    ) AS t
+                    vw_verbas
+                GROUP BY
+                    ano_verba
+                ORDER BY
+                    ano_verba DESC
+                LIMIT 1 OFFSET 1
             )
-    ) AS diferenca_ptrf;
+            THEN vw.soma_ptrf
+            ELSE 0
+        END)
+    ) AS diferenca_ptrf,
+    
+    -- 4. ACRESCENTADO: Último Ano (MAX)
+    (SELECT MAX(ano_verba) FROM vw_verbas) AS ultimo_ano,
+
+    -- 5. ACRESCENTADO: Penúltimo Ano
+    (
+        SELECT
+            ano_verba
+        FROM
+            vw_verbas
+        GROUP BY
+            ano_verba
+        ORDER BY
+            ano_verba DESC
+        LIMIT 1 OFFSET 1
+    ) AS penultimo_ano
+FROM
+    vw_verbas AS vw;
 
 /*KPIs -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------S*/
 /*Lista de escolas ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
