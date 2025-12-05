@@ -288,6 +288,20 @@ BEGIN
     SELECT * FROM TB_Empresas;
 END $$
 
+CREATE PROCEDURE SP_GerarToken(
+    IN p_id_empresa INT,
+    IN p_token VARCHAR(45)
+)
+BEGIN
+    INSERT INTO TB_Tokens (id_empresa, token, ativo)
+    VALUES (p_id_empresa, p_token, TRUE)
+    ON DUPLICATE KEY UPDATE 
+        token = VALUES(token),
+        ativo = TRUE;
+
+    SELECT ROW_COUNT() AS linhas_afetadas;
+END;
+
 CREATE PROCEDURE SP_AtualizarEmpresa(
     IN p_id INT,
     IN p_razao_social VARCHAR(60),
@@ -431,3 +445,9 @@ VALUES ('#school_mapping_hub');
 
 INSERT INTO TB_Bot_Slack (nome, token)
 VALUES ('SchoolMappingBot', 'xoxb');
+
+SELECT * FROM TB_Usuarios;
+SELECT * FROM TB_Empresas;
+SELECT * FROM TB_Tokens;
+INSERT INTO TB_Tokens (id_empresa, token, ativo)
+VALUES (1, 'TESTE123ABC', 1);
