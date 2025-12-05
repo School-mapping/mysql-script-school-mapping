@@ -31,22 +31,16 @@ CREATE TABLE
         CONSTRAINT fk_empresa_tb_usuarios FOREIGN KEY (id_empresa) REFERENCES TB_Empresas (id)
     );
     
-CREATE TABLE
-    TB_Status_Chamados (
-        id INT PRIMARY KEY AUTO_INCREMENT,
-        tipo VARCHAR(45) NOT NULL UNIQUE
-    );
-CREATE TABLE
-    TB_Chamados (
-        id INT PRIMARY KEY AUTO_INCREMENT,
-        id_usuario INT NOT NULL,
-        id_status INT,
-        assunto VARCHAR(45) NOT NULL,
-        descricao TEXT NOT NULL,
-        tipo VARCHAR(45) NOT NULL,
-        CONSTRAINT fk_usuario_tb_chamados FOREIGN KEY (id_usuario) REFERENCES TB_Usuarios (id),
-        CONSTRAINT fk_status_tb_chamados FOREIGN KEY (id_status) REFERENCES TB_Status (id)
-    );
+CREATE TABLE TB_Chamados (
+id INT PRIMARY KEY AUTO_INCREMENT,
+id_usuario INT NOT NULL,
+assunto VARCHAR(30),
+descricao VARCHAR(255),
+status VARCHAR(15) DEFAULT "Aberto",
+data_chamado DATE DEFAULT (CURDATE()),
+	CONSTRAINT fk_chamado_tb_usuarios
+		FOREIGN KEY (id_usuario) REFERENCES TB_Usuarios(id)
+);
     
 CREATE TABLE
     TB_Tokens (
