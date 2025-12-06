@@ -493,3 +493,5 @@ SELECT
             LEFT JOIN TB_Empresas e ON u.id_empresa = e.id
             WHERE u.id = 2
               AND sc.tipo != 'Descontinuado';
+              
+              select * from TB_Notificacao_config;
