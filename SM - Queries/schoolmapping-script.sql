@@ -112,14 +112,15 @@ CREATE TABLE TB_Status_Chamados (
 );
 
 CREATE TABLE TB_Chamados (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    id_usuario INT NOT NULL,
-    id_status INT,
-    assunto VARCHAR(45) NOT NULL,
-    descricao TEXT NOT NULL,
-    data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP, -- já registra a data automaticamente
-    CONSTRAINT fk_usuario_tb_chamados FOREIGN KEY (id_usuario) REFERENCES TB_Usuarios(id),
-    CONSTRAINT fk_status_tb_chamados FOREIGN KEY (id_status) REFERENCES TB_Status_Chamados(id)
+id INT PRIMARY KEY AUTO_INCREMENT,
+id_usuario INT NOT NULL,
+assunto VARCHAR(30),
+descricao VARCHAR(255),
+status VARCHAR(15) DEFAULT "Aberto",
+notificado BOOLEAN DEFAULT false,
+data_chamado DATE DEFAULT (CURDATE()),
+	CONSTRAINT fk_chamado_tb_usuarios
+		FOREIGN KEY (id_usuario) REFERENCES TB_Usuarios(id)
 );
 
 INSERT INTO TB_Status_Chamados (id, tipo) VALUES
@@ -145,7 +146,7 @@ CREATE TABLE TB_Notificacao_Config (
     id_canal INT,
     tipo_alerta VARCHAR(50),
     ativo BOOLEAN DEFAULT TRUE,
-    ultimo_disparo DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ultimo_disparo DATETIME ,
     CONSTRAINT fk_notif_usuario FOREIGN KEY (id_usuario) REFERENCES TB_Usuarios(id),
     CONSTRAINT fk_notif_bot FOREIGN KEY (id_bot) REFERENCES TB_Bot_Slack(id),
     CONSTRAINT fk_notif_canal FOREIGN KEY (id_canal) REFERENCES TB_Canal_Slack(id)
@@ -473,3 +474,22 @@ VALUES ('#school_mapping_hub');
 INSERT INTO TB_Bot_Slack (nome, token)VALUES ('SchoolMappingBot', 'xoxb');
 
 INSERT INTO TB_Tokens (id_empresa, token, ativo) VALUES (1, 'TESTE123ABC', 1);
+
+select * from TB_Chamados;
+SELECT
+                c.id AS id_chamado,
+                u.nome AS nome,
+                u.email AS email,
+                p.cargo AS perfil,
+                e.razao_social,
+                c.assunto,
+                c.descricao,
+                sc.tipo,
+                DATE_FORMAT(c.data_cadastro, '%d/%m/%Y') AS data_chamado
+            FROM TB_Chamados c
+            JOIN TB_Usuarios u ON c.id_usuario = u.id
+            JOIN TB_Perfis p ON u.id_perfil = p.id
+            JOIN TB_Status_Chamados sc on c.id_status = sc.id
+            LEFT JOIN TB_Empresas e ON u.id_empresa = e.id
+            WHERE u.id = 2
+              AND sc.tipo != 'Descontinuado';
