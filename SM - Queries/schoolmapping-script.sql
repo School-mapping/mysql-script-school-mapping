@@ -112,6 +112,7 @@ CREATE TABLE TB_Status_Chamados (
 );
 
 CREATE TABLE TB_Chamados (
+<<<<<<< HEAD
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_usuario INT NOT NULL,
     id_status INT,
@@ -120,6 +121,17 @@ CREATE TABLE TB_Chamados (
     data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP, 
     CONSTRAINT fk_usuario_tb_chamados FOREIGN KEY (id_usuario) REFERENCES TB_Usuarios(id),
     CONSTRAINT fk_status_tb_chamados FOREIGN KEY (id_status) REFERENCES TB_Status_Chamados(id)
+=======
+id INT PRIMARY KEY AUTO_INCREMENT,
+id_usuario INT NOT NULL,
+assunto VARCHAR(30),
+descricao VARCHAR(255),
+status VARCHAR(15) DEFAULT "Aberto",
+notificado BOOLEAN DEFAULT false,
+data_chamado DATE DEFAULT (CURDATE()),
+	CONSTRAINT fk_chamado_tb_usuarios
+		FOREIGN KEY (id_usuario) REFERENCES TB_Usuarios(id)
+>>>>>>> 885cd46ee9aeff44ab7e8de1b00ec5e4a625b62e
 );
 
 INSERT INTO TB_Status_Chamados (id, tipo) VALUES
@@ -145,7 +157,7 @@ CREATE TABLE TB_Notificacao_Config (
     id_canal INT,
     tipo_alerta VARCHAR(50),
     ativo BOOLEAN DEFAULT TRUE,
-    ultimo_disparo DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ultimo_disparo DATETIME ,
     CONSTRAINT fk_notif_usuario FOREIGN KEY (id_usuario) REFERENCES TB_Usuarios(id),
     CONSTRAINT fk_notif_bot FOREIGN KEY (id_bot) REFERENCES TB_Bot_Slack(id),
     CONSTRAINT fk_notif_canal FOREIGN KEY (id_canal) REFERENCES TB_Canal_Slack(id)
@@ -491,4 +503,10 @@ SELECT
             JOIN TB_Status_Chamados sc on c.id_status = sc.id
             LEFT JOIN TB_Empresas e ON u.id_empresa = e.id
             WHERE u.id = 2
+<<<<<<< HEAD
               AND sc.tipo != 'Descontinuado';
+=======
+              AND sc.tipo != 'Descontinuado';
+              
+              select * from TB_Notificacao_config;
+>>>>>>> 885cd46ee9aeff44ab7e8de1b00ec5e4a625b62e
