@@ -503,10 +503,4 @@ SELECT
             JOIN TB_Status_Chamados sc on c.id_status = sc.id
             LEFT JOIN TB_Empresas e ON u.id_empresa = e.id
             WHERE u.id = 2
-<<<<<<< HEAD
               AND sc.tipo != 'Descontinuado';
-=======
-              AND sc.tipo != 'Descontinuado';
-              
-              select * from TB_Notificacao_config;
->>>>>>> 885cd46ee9aeff44ab7e8de1b00ec5e4a625b62e
