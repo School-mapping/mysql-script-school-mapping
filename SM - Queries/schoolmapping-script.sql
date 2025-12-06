@@ -77,6 +77,7 @@ CREATE TABLE TB_Escolas (
     nome VARCHAR(100) NOT NULL,
     codigo_inep CHAR(8) NOT NULL UNIQUE,
     subprefeitura VARCHAR(60),
+    data_processamento DATE,
     CONSTRAINT fk_endereco_tb_escolas FOREIGN KEY (id_endereco) REFERENCES TB_Enderecos(id)
 );
 
@@ -85,6 +86,7 @@ CREATE TABLE TB_Ideb (
     id_escola INT NOT NULL,
     nota DECIMAL(3,1) NOT NULL,
     ano_emissao YEAR NOT NULL,
+    data_processamento DATE,
     CONSTRAINT fk_escola_tb_ideb FOREIGN KEY (id_escola) REFERENCES TB_Escolas(id)
 );
 
@@ -99,6 +101,7 @@ CREATE TABLE TB_Verbas (
     valor_vulnerabilidade DECIMAL(12,2),
     valor_extraordinario DECIMAL(12,2),
     valor_gremio DECIMAL(12,2),
+    data_processamento DATE,
     CONSTRAINT fk_escola_tb_verbas FOREIGN KEY (id_escola) REFERENCES TB_Escolas(id)
 );
 
@@ -114,11 +117,15 @@ CREATE TABLE TB_Chamados (
     id_status INT,
     assunto VARCHAR(45) NOT NULL,
     descricao TEXT NOT NULL,
-    tipo VARCHAR(45) NOT NULL,
+    data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP, -- já registra a data automaticamente
     CONSTRAINT fk_usuario_tb_chamados FOREIGN KEY (id_usuario) REFERENCES TB_Usuarios(id),
     CONSTRAINT fk_status_tb_chamados FOREIGN KEY (id_status) REFERENCES TB_Status_Chamados(id)
 );
 
+INSERT INTO TB_Status_Chamados (id, tipo) VALUES
+(1, 'Aberto'),
+(2, 'Finalizado'),
+(3, 'Descontinuado');
 
 CREATE TABLE TB_Canal_Slack (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -285,8 +292,17 @@ END $$
 
 CREATE PROCEDURE SP_CarregarEmpresas()
 BEGIN
-    SELECT * FROM TB_Empresas;
+    SELECT 
+        e.id,
+        e.razao_social,
+        e.cnpj,
+        e.email,
+        e.telefone,
+        t.token
+    FROM TB_Empresas e
+    LEFT JOIN TB_Tokens t ON e.id = t.id_empresa;
 END $$
+
 
 CREATE PROCEDURE SP_GerarToken(
     IN p_id_empresa INT,
@@ -322,13 +338,25 @@ END $$
 
 CREATE PROCEDURE SP_DeletarEmpresa(IN p_id INT)
 BEGIN
+    DELETE FROM TB_Usuarios WHERE id_empresa = p_id;
+
+    DELETE FROM TB_Tokens WHERE id_empresa = p_id;
+
     DELETE FROM TB_Empresas WHERE id = p_id;
+
     SELECT ROW_COUNT() AS linhas_afetadas;
 END $$
 
 CREATE PROCEDURE SP_CarregarPerfil(IN p_id INT)
 BEGIN
-    SELECT id_perfil FROM TB_Usuarios WHERE id = p_id;
+    SELECT 
+        u.id_perfil,
+        p.cargo AS nome_perfil,
+        e.razao_social
+    FROM TB_Usuarios u
+    JOIN TB_Perfis p ON u.id_perfil = p.id
+    LEFT JOIN TB_Empresas e ON u.id_empresa = e.id
+    WHERE u.id = p_id;
 END $$
 
 CREATE PROCEDURE SP_VincularUsuario(
@@ -353,12 +381,11 @@ DELIMITER $$
 CREATE PROCEDURE SP_EnviarChamado(
     IN p_idUsuario INT,
     IN p_assunto VARCHAR(45),
-    IN p_descricao TEXT,
-    IN p_tipo VARCHAR(45)
+    IN p_descricao TEXT
 )
 BEGIN
-    INSERT INTO TB_Chamados (id_usuario, id_status, assunto, descricao, tipo)
-    VALUES (p_idUsuario, 1, p_assunto, p_descricao, p_tipo); -- 1 = Aberto
+    INSERT INTO TB_Chamados (id_usuario, id_status, assunto, descricao)
+    VALUES (p_idUsuario, 1, p_assunto, p_descricao); -- 1 = Aberto
 
     SELECT LAST_INSERT_ID() AS id_chamado;
 END $$
@@ -443,11 +470,6 @@ VALUES (2, 1, 'Admin Sistema', 'admin@schoolmapping.com', 'senhaSegura123');
 INSERT INTO TB_Canal_Slack (nome)
 VALUES ('#school_mapping_hub');
 
-INSERT INTO TB_Bot_Slack (nome, token)
-VALUES ('SchoolMappingBot', 'xoxb');
+INSERT INTO TB_Bot_Slack (nome, token)VALUES ('SchoolMappingBot', 'xoxb');
 
-SELECT * FROM TB_Usuarios;
-SELECT * FROM TB_Empresas;
-SELECT * FROM TB_Tokens;
-INSERT INTO TB_Tokens (id_empresa, token, ativo)
-VALUES (1, 'TESTE123ABC', 1);
+INSERT INTO TB_Tokens (id_empresa, token, ativo) VALUES (1, 'TESTE123ABC', 1);
