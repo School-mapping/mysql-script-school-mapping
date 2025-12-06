@@ -117,7 +117,7 @@ CREATE TABLE TB_Chamados (
     id_status INT,
     assunto VARCHAR(45) NOT NULL,
     descricao TEXT NOT NULL,
-    data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP, -- já registra a data automaticamente
+    data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP, 
     CONSTRAINT fk_usuario_tb_chamados FOREIGN KEY (id_usuario) REFERENCES TB_Usuarios(id),
     CONSTRAINT fk_status_tb_chamados FOREIGN KEY (id_status) REFERENCES TB_Status_Chamados(id)
 );
@@ -473,3 +473,22 @@ VALUES ('#school_mapping_hub');
 INSERT INTO TB_Bot_Slack (nome, token)VALUES ('SchoolMappingBot', 'xoxb');
 
 INSERT INTO TB_Tokens (id_empresa, token, ativo) VALUES (1, 'TESTE123ABC', 1);
+
+select * from TB_Chamados;
+SELECT
+                c.id AS id_chamado,
+                u.nome AS nome,
+                u.email AS email,
+                p.cargo AS perfil,
+                e.razao_social,
+                c.assunto,
+                c.descricao,
+                sc.tipo,
+                DATE_FORMAT(c.data_cadastro, '%d/%m/%Y') AS data_chamado
+            FROM TB_Chamados c
+            JOIN TB_Usuarios u ON c.id_usuario = u.id
+            JOIN TB_Perfis p ON u.id_perfil = p.id
+            JOIN TB_Status_Chamados sc on c.id_status = sc.id
+            LEFT JOIN TB_Empresas e ON u.id_empresa = e.id
+            WHERE u.id = 2
+              AND sc.tipo != 'Descontinuado';
