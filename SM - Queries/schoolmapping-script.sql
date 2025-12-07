@@ -77,7 +77,7 @@ CREATE TABLE TB_Escolas (
     nome VARCHAR(100) NOT NULL,
     codigo_inep CHAR(8) NOT NULL UNIQUE,
     subprefeitura VARCHAR(60),
-    data_processamento DATE,
+    data_processamento DATETIME,
     CONSTRAINT fk_endereco_tb_escolas FOREIGN KEY (id_endereco) REFERENCES TB_Enderecos(id)
 );
 
@@ -86,7 +86,7 @@ CREATE TABLE TB_Ideb (
     id_escola INT NOT NULL,
     nota DECIMAL(3,1) NOT NULL,
     ano_emissao YEAR NOT NULL,
-    data_processamento DATE,
+    data_processamento DATETIME,
     CONSTRAINT fk_escola_tb_ideb FOREIGN KEY (id_escola) REFERENCES TB_Escolas(id)
 );
 
@@ -101,7 +101,7 @@ CREATE TABLE TB_Verbas (
     valor_vulnerabilidade DECIMAL(12,2),
     valor_extraordinario DECIMAL(12,2),
     valor_gremio DECIMAL(12,2),
-    data_processamento DATE,
+    data_processamento DATETIME,
     CONSTRAINT fk_escola_tb_verbas FOREIGN KEY (id_escola) REFERENCES TB_Escolas(id)
 );
 
@@ -112,15 +112,15 @@ CREATE TABLE TB_Status_Chamados (
 );
 
 CREATE TABLE TB_Chamados (
-id INT PRIMARY KEY AUTO_INCREMENT,
-id_usuario INT NOT NULL,
-assunto VARCHAR(30),
-descricao VARCHAR(255),
-status VARCHAR(15) DEFAULT "Aberto",
-notificado BOOLEAN DEFAULT false,
-data_chamado DATE DEFAULT (CURDATE()),
-	CONSTRAINT fk_chamado_tb_usuarios
-		FOREIGN KEY (id_usuario) REFERENCES TB_Usuarios(id)
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    id_usuario INT NOT NULL,
+    id_status INT,
+    assunto VARCHAR(45) NOT NULL,
+    descricao TEXT NOT NULL,
+    notificado BOOLEAN DEFAULT false,
+    data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP, 
+    CONSTRAINT fk_usuario_tb_chamados FOREIGN KEY (id_usuario) REFERENCES TB_Usuarios(id),
+    CONSTRAINT fk_status_tb_chamados FOREIGN KEY (id_status) REFERENCES TB_Status_Chamados(id)
 );
 
 INSERT INTO TB_Status_Chamados (id, tipo) VALUES
@@ -474,22 +474,3 @@ VALUES ('#school_mapping_hub');
 INSERT INTO TB_Bot_Slack (nome, token)VALUES ('SchoolMappingBot', 'xoxb');
 
 INSERT INTO TB_Tokens (id_empresa, token, ativo) VALUES (1, 'TESTE123ABC', 1);
-
-select * from TB_Chamados;
-SELECT
-                c.id AS id_chamado,
-                u.nome AS nome,
-                u.email AS email,
-                p.cargo AS perfil,
-                e.razao_social,
-                c.assunto,
-                c.descricao,
-                sc.tipo,
-                DATE_FORMAT(c.data_cadastro, '%d/%m/%Y') AS data_chamado
-            FROM TB_Chamados c
-            JOIN TB_Usuarios u ON c.id_usuario = u.id
-            JOIN TB_Perfis p ON u.id_perfil = p.id
-            JOIN TB_Status_Chamados sc on c.id_status = sc.id
-            LEFT JOIN TB_Empresas e ON u.id_empresa = e.id
-            WHERE u.id = 2
-              AND sc.tipo != 'Descontinuado';
