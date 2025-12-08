@@ -468,7 +468,7 @@ INSERT INTO TB_Empresas (razao_social, cnpj, email, telefone) VALUES
 ('Tech School Solutions', '12345678000199', 'contato@techschool.com', '11987654321');
 
 INSERT INTO TB_Usuarios (id_perfil, id_empresa, nome, email, senha)
-VALUES (2, 1, 'Admin Sistema', 'admin@schoolmapping.com', 'senhaSegura123');
+VALUES (2, 1, 'Admin', 'admin@schoolmapping.com', 'Teste123*');
 
 INSERT INTO TB_Canal_Slack (nome)
 VALUES ('school_mapping_hub');
