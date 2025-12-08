@@ -130,7 +130,9 @@ INSERT INTO TB_Status_Chamados (id, tipo) VALUES
 
 CREATE TABLE TB_Canal_Slack (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    nome VARCHAR(40) NOT NULL
+    id_usuario INT,
+    nome VARCHAR(40) NOT NULL,
+    CONSTRAINT fk_usuario_tb_canal_slack FOREIGN KEY (id_usuario) REFERENCES TB_Usuarios(id)
 );
 
 CREATE TABLE TB_Bot_Slack (
@@ -469,7 +471,7 @@ INSERT INTO TB_Usuarios (id_perfil, id_empresa, nome, email, senha)
 VALUES (2, 1, 'Admin Sistema', 'admin@schoolmapping.com', 'senhaSegura123');
 
 INSERT INTO TB_Canal_Slack (nome)
-VALUES ('#school_mapping_hub');
+VALUES ('school_mapping_hub');
 
 INSERT INTO TB_Bot_Slack (nome, token)VALUES ('SchoolMappingBot', 'xoxb');
 
