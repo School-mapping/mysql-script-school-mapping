@@ -85,6 +85,7 @@ CREATE TABLE TB_Ideb (
     id INT PRIMARY KEY AUTO_INCREMENT,
     id_escola INT NOT NULL,
     nota DECIMAL(3,1) NOT NULL,
+    fluxo DOUBLE,
     ano_emissao YEAR NOT NULL,
     data_processamento DATETIME,
     CONSTRAINT fk_escola_tb_ideb FOREIGN KEY (id_escola) REFERENCES TB_Escolas(id)
@@ -193,6 +194,18 @@ JOIN TB_Enderecos endereco ON escola.id_endereco = endereco.id
 JOIN TB_Regioes regiao ON endereco.id_regiao = regiao.id
 GROUP BY verba.ano, regiao.nome
 ORDER BY ano_verba DESC;
+
+CREATE OR REPLACE VIEW vw_fluxo_regiao AS
+SELECT 
+    regiao.nome AS regiao,
+    ROUND(AVG(ideb.fluxo), 2) AS media_fluxo,
+    ideb.ano_emissao AS ano_fluxo
+FROM TB_Ideb ideb
+INNER JOIN TB_Escolas escola ON ideb.id_escola = escola.id
+INNER JOIN TB_Enderecos endereco ON escola.id_endereco = endereco.id
+INNER JOIN TB_Regioes regiao ON endereco.id_regiao = regiao.id
+GROUP BY ideb.ano_emissao, regiao.nome
+ORDER BY ideb.ano_emissao DESC, regiao.nome ASC;
 
 CREATE VIEW vw_escolas AS
 SELECT
@@ -474,5 +487,3 @@ INSERT INTO TB_Canal_Slack (nome)
 VALUES ('school_mapping_hub');
 
 INSERT INTO TB_Bot_Slack (nome, token)VALUES ('SchoolMappingBot', 'xoxb');
-
-INSERT INTO TB_Tokens (id_empresa, token, ativo) VALUES (1, 'TESTE123ABC', 1);
